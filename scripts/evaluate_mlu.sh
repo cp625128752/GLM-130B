@@ -10,10 +10,10 @@ main_dir=$(dirname $script_dir)
 
 source "${main_dir}/configs/model_glm_130b_mlu.sh"
 
-DATA_PATH="data/evaluation/"
+DATA_PATH="/projs/AE/chenpeng/evaluation/"
 
 ARGS="${main_dir}/evaluate.py \
-       --distributed-backend cncl \
+       --distributed-backend mpi \
        --mode inference \
        --data-path $DATA_PATH \
        --task $* \
@@ -24,6 +24,5 @@ EXP_NAME=${TIMESTAMP}
 
 mkdir -p logs
 
-run_cmd="python -m torch.distributed.launch \
-       --nproc_per_node $MP_SIZE ${ARGS}"
+run_cmd="mpirun --allow-run-as-root -n 8 python ${ARGS}"
 eval ${run_cmd} 2>&1 | tee logs/${EXP_NAME}.log

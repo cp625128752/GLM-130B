@@ -178,7 +178,7 @@ class MultiChoiceTaskDataset(EvaluationDataset):
         return True
 
     def collate_fn(self, samples):
-        TILE = 32
+        TILE = 2047
         length_to_pad = (max(map(lambda spl: len(spl["token"]), samples)) + TILE - 1) // TILE * TILE
 
         token_batch, position_id_batch, attention_mask_batch = [], [], []

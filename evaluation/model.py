@@ -74,13 +74,12 @@ def batch_filling_sequence(
             break
     return strategy.finalize(tokens, mems)
 
-
 class ModelForEvaluation(torch.nn.Module):
     def __init__(self, model):
         super().__init__()
 
         self.model = model
-        self.device = next(self.model.parameters()).device
+        self.device = self.model.device
 
     @staticmethod
     def process_data(batch, device):
@@ -98,9 +97,16 @@ class ModelForEvaluation(torch.nn.Module):
         choices_batch, choice_target_ids_batch = batch["choices"], batch["choice_target_ids"]
         is_single_token = batch["is_single_token"]
 
-        self.model.eval()
+        valid_offset = torch.tensor([tokens.shape[1]], dtype=torch.int32).to(device=self.device)
+        attention_mask = attention_mask * (-10000)
         with torch.no_grad():
-            logits, *output_per_layers = self.model(tokens, position_ids, attention_mask, log_attention_weights=None)
+            logits = self.model(tokens,
+                                position_ids.type(torch.int32).to(device=self.device),
+                                attention_mask.type(torch.HalfTensor).to(device=self.device),
+                                valid_offset,
+                                None,
+                                None,
+                                None)
             logits_batch = torch.nn.functional.log_softmax(logits, dim=-1)
 
         # output: [b, sq, vocab]
