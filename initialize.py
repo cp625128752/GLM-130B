@@ -95,8 +95,8 @@ def initialize_model_and_tokenizer(args):
     tokenizer = get_tokenizer(args)
 
     gpt_config = GptConfig()
-    gpt_config.load_model_config(Config("/test/GLM-130B/chatglm_130B_int8.cfg"))
-    gpt_config.load_input_config(Config("/test/GLM-130B/input_int8.cfg"))
+    gpt_config.load_model_config(Config("./chatglm_130B_int8.cfg"))
+    gpt_config.load_input_config(Config("./input_int8.cfg"))
     torch.mlu.set_device(torch.distributed.get_rank())
     device = torch.mlu.current_device()
 
@@ -163,6 +163,7 @@ def initialize_model_and_tokenizer(args):
         "norm_type":gpt_config.norm_type,
         "lnres_mode":gpt_config.lnres_mode,
         "residual_alpha":gpt_config.residual_alpha,
+        "layernorm_eps": gpt_config.layernorm_eps,
         "residual_beta":gpt_config.residual_beta,
         "act_mode":gpt_config.act_mode,
         "position_embedding_type":gpt_config.position_embedding_type,
@@ -179,10 +180,11 @@ def initialize_model_and_tokenizer(args):
         "is_context_decoder":True,
     }
 
-    torch.classes.load_library("/test/bangtransformer/build/libbttorch.so")
+    torch.classes.load_library("/workspace/bangtransformer/build/libbttorch.so")
     context_decoder = GPT(
         **decoder_args
     )
+    context_decoder.set_context_max_batch_and_seq_len(1, 2048)
     model = BTModel(embedding_layer, context_decoder, device)
 
     return model, tokenizer

@@ -1,6 +1,6 @@
 MODEL_TYPE="glm-130b"
 CHECKPOINT_PATH="glm-130b-sat-mlu/"
-MP_SIZE=16
+MP_SIZE=8
 MODEL_ARGS="--model-parallel-size ${MP_SIZE} \
             --num-layers 70 \
             --hidden-size 12288 \
